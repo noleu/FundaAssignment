@@ -1,0 +1,7 @@
+﻿services:
+  fundaassignment:
+    image: fundaassignment
+    build:
+      context: .
+      dockerfile: FundaAssignment/Dockerfile
+
