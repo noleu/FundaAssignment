@@ -7,6 +7,12 @@ namespace FundaAssignment.Load;
 
 public static class OutputCreator
 {
+    /// <summary>
+    /// Creates output files and console output for the list of real estate agents.
+    /// </summary>
+    /// <param name="realEstateAgents">List of real estate agent records</param>
+    /// <param name="outputDir">Output directory for the files</param>
+    /// <param name="fileName">File name without an extension</param>
     public static void CreateOutput(this List<RealEstateAgent> realEstateAgents, String outputDir, String fileName)
     {
         var outputPath = Path.Combine(outputDir, fileName);
@@ -20,14 +26,18 @@ public static class OutputCreator
         Console.WriteLine($"Writing output to {outputPath}.csv");
         realEstateAgents.WriteToCsv(outputPath);
         // Write to JSON
-        Console.WriteLine($"Writing output to {outputPath}.csv");
+        Console.WriteLine($"Writing output to {outputPath}.json");
         realEstateAgents.WriteToJson(outputPath);
         // Write to Console
-        Console.WriteLine($"Writing output to {outputPath}.csv");
+        Console.WriteLine($"Writing output to console");
         realEstateAgents.WriteToConsole();
     }
     
-    
+    /// <summary>
+    /// Writes the list of real estate agents to a CSV file.
+    /// </summary>
+    /// <param name="realEstateAgents">List of real estate agent records</param>
+    /// <param name="outputFile">Path to the outputfile including the name</param>
     private static void WriteToCsv(this List<RealEstateAgent> realEstateAgents, String outputFile)
     {
         if (File.Exists(outputFile))
@@ -43,6 +53,11 @@ public static class OutputCreator
         csv.WriteRecords(realEstateAgents);
     }
     
+    /// <summary>
+    /// Writes the list of real estate agents to a JSON file.
+    /// </summary>
+    /// <param name="realEstateAgents">List of real estate agent records</param>
+    /// <param name="outputFile">Path to the outputfile including the name</param>
     private static void WriteToJson(this List<RealEstateAgent> realEstateAgents, String outputFile)
     {
         if (File.Exists(outputFile))
@@ -56,6 +71,10 @@ public static class OutputCreator
         File.WriteAllText($"{outputFile}.json", jsonString);
     }
     
+    /// <summary>
+    /// Writes the list of real estate agents to the console.
+    /// </summary>
+    /// <param name="realEstateAgent">List of real estate agents to print</param>
     private static void WriteToConsole(this List<RealEstateAgent> realEstateAgent)
     {
         Console.WriteLine("Real Estate Agents:");

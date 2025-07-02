@@ -4,6 +4,7 @@ using FundaAssignment.Extraction;
 using FundaAssignment.Load;
 using FundaAssignment.Transformation;
 
+// TODO: Add CLI arguments for output directory
 ExtractionClient extractionClient = new ExtractionClient();
 String outputDir = Environment.GetEnvironmentVariable("OUTPUT_DIR") ?? "output";
 
@@ -17,13 +18,7 @@ List<RealEstateAgent> purchaseResults = realEstateAgents.TransformByOfferType(Of
 List<RealEstateAgent> rentResults = realEstateAgents.TransformByOfferType(OfferType.Rent);
 Console.WriteLine("Done");
 
-// create output file
-overAllResults.CreateOutput(outputDir, "amsterdam_overall");
-purchaseResults.CreateOutput(outputDir, "amsterdam_purchase_only");
-rentResults.CreateOutput(outputDir, "amsterdam_rent_only");
-
 // load garden data 
-// Load general Amsterdam data
 realEstateAgents = extractionClient.GetBrokerData("garden").GetAwaiter().GetResult();
 
 // create result table  

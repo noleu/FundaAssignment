@@ -6,10 +6,12 @@ namespace FundaAssignment.Transformation;
 public static class RealEstateAgentDataTransformer
 {
     /// <summary>
-    /// 
+    /// Transforms a list of real estate agents by grouping them by their ID and counting the number of offers per real estate agent.
+    /// Reduces the list to the top 10 real estate agents based on the number of offers.
     /// </summary>
-    /// <param name="realEstateAgents"></param>
-    /// <exception cref="ArgumentNullException"></exception>
+    /// <param name="realEstateAgents">List of real estate agent to transform</param>
+    /// <exception cref="ArgumentNullException">Thrown if real estate agents is null</exception>
+    /// <returns>List to the top 10 real estate agents based on the number of offers</returns>
     public static List<RealEstateAgent> Transform(this List<RealEstateAgent> realEstateAgents)
     {
         ArgumentNullException.ThrowIfNull(realEstateAgents);
@@ -28,6 +30,14 @@ public static class RealEstateAgentDataTransformer
             .ToList();
     }
     
+    /// <summary>
+    /// Transforms a list of real estate agents by filtering them based on the specified offer type (Purchase or Rent).
+    /// Reduces the list to the top 10 real estate agents based on the number of offers for the specified offer type.
+    /// </summary>
+    /// <param name="realEstateAgents">List of real estate agent to transform</param>
+    /// <param name="offerType">Type of offer they have placed on funda</param>
+    /// <exception cref="ArgumentNullException">Thrown if real estate agents is null</exception>
+    /// <returns>List to the top 10 real estate agents based on the number of offers</returns>
     public static List<RealEstateAgent> TransformByOfferType(this List<RealEstateAgent> realEstateAgents, OfferType offerType)
     {
         ArgumentNullException.ThrowIfNull(realEstateAgents);
