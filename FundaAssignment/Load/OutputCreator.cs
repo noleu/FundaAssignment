@@ -16,12 +16,14 @@ public static class OutputCreator
             Directory.CreateDirectory(outputDir);
         }
         
-        
         // Write to CSV
+        Console.WriteLine($"Writing output to {outputPath}.csv");
         realEstateAgents.WriteToCsv(outputPath);
         // Write to JSON
+        Console.WriteLine($"Writing output to {outputPath}.csv");
         realEstateAgents.WriteToJson(outputPath);
         // Write to Console
+        Console.WriteLine($"Writing output to {outputPath}.csv");
         realEstateAgents.WriteToConsole();
     }
     
@@ -36,7 +38,7 @@ public static class OutputCreator
             File.Delete(outputFile);
         }
 
-        using var writer = new StreamWriter($"outputFile.csv");
+        using var writer = new StreamWriter($"{outputFile}.csv");
         using var csv = new CsvWriter(writer, CultureInfo.InvariantCulture);
         csv.WriteRecords(realEstateAgents);
     }
@@ -53,7 +55,7 @@ public static class OutputCreator
         string jsonString = JsonSerializer.Serialize(realEstateAgents);
         File.WriteAllText($"{outputFile}.json", jsonString);
     }
-
+    
     private static void WriteToConsole(this List<RealEstateAgent> realEstateAgent)
     {
         Console.WriteLine("Real Estate Agents:");
@@ -61,6 +63,5 @@ public static class OutputCreator
         {
             Console.WriteLine($"ID: {agent.MakelaarId}, Name: {agent.MakelaarNaam}, Offer Type: {agent.OfferType}, Count: {agent.Count}");
         }
-        Console.WriteLine($"Total Agents: {realEstateAgent.Count}");
     }
 }

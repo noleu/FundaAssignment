@@ -26,12 +26,18 @@ public class ExtractionClient
         
         if (objective.ToLower() == "allamsterdam")
         {
+            Console.WriteLine("Fetching all Amsterdam real estate offers for purchase...");
             brokerEntries.AddRange(await GetPurchaseOffersAsync());
+            Console.WriteLine("Done with purchase offers.");
+            Console.WriteLine("Fetching all Amsterdam real estate offers for rent...");
             brokerEntries.AddRange(await GetRentOffersAsync());
+            Console.WriteLine("Done with rent offers.");
             
         }else if (objective == "garden")
         {
+            Console.WriteLine("Fetching all garden real estate offers for purchase...");
             brokerEntries.AddRange(await GetPurchaseOffersAsync("tuin/"));
+            Console.WriteLine("Done with garden purchase offers.");
         }
         else
         {
@@ -46,7 +52,6 @@ public class ExtractionClient
     {
         List<RealEstateAgent> realEstateAgents = new List<RealEstateAgent>();
         // setup http client to fetch data from the API or website
-        // HttpClient client = _httpClientFactory.CreateClient("purchase");
         using HttpClient client = new HttpClient();
         client.BaseAddress = new Uri($"{BaseUrl}/{_apiKey}/");
 
@@ -58,6 +63,8 @@ public class ExtractionClient
 
         while (nextPageAvailable)
         {
+            if (page % 10 == 0) Console.WriteLine("Fetching page: " + page);
+            
             try
             {
                 responseMessage = await client.GetAsync(remainingURl);
@@ -85,6 +92,8 @@ public class ExtractionClient
                 {
                     nextPageAvailable = true;
                     remainingURl = remainingURl.Replace($"&page={page}", $"&page={++page}");
+                    // Sleep for 600 milliseconds to avoid hitting the rate limit of > 100 requests per minute
+                    Thread.Sleep(500); 
                 }
                 else
                 {
@@ -121,6 +130,8 @@ public class ExtractionClient
 
         while (nextPageAvailable)
         {
+            if (page % 10 == 0) Console.WriteLine("Fetching page: " + page);
+            
             try
             {
                 responseMessage = await client.GetAsync(remainingURl);
@@ -128,7 +139,6 @@ public class ExtractionClient
                 if (!responseMessage.IsSuccessStatusCode)
                 {
                     Console.WriteLine($"Failed to fetch data: {responseMessage.StatusCode} on page {page}");
-                    // return new List<RealEstateAgent>();
                     page++;
                     remainingURl = remainingURl.Replace("&page=", $"&page={page}");
                     continue;
@@ -147,7 +157,9 @@ public class ExtractionClient
                     && !string.IsNullOrEmpty(responseContent.Paging.VolgendeUrl))
                 {
                     nextPageAvailable = true;
-                    remainingURl = remainingURl.Replace($"&page={page}", $"&page={page++}");
+                    remainingURl = remainingURl.Replace($"&page={page}", $"&page={++page}");
+                    // Sleep for 600 milliseconds to avoid hitting the rate limit of > 100 requests per minute
+                    Thread.Sleep(500); 
                 }
                 else
                 {
@@ -163,7 +175,7 @@ public class ExtractionClient
 
         foreach (var realEstateAgent in realEstateAgents)
         {
-            realEstateAgent.OfferType = OfferType.Purchase;
+            realEstateAgent.OfferType = OfferType.Rent;
         }
         
         // Logic to extract purchase offers

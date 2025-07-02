@@ -3,10 +3,7 @@
 using FundaAssignment.Extraction;
 using FundaAssignment.Load;
 using FundaAssignment.Transformation;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 
-HostApplicationBuilder builder = Host.CreateApplicationBuilder(args);
 ExtractionClient extractionClient = new ExtractionClient();
 String outputDir = Environment.GetEnvironmentVariable("OUTPUT_DIR") ?? "output";
 
@@ -14,9 +11,11 @@ String outputDir = Environment.GetEnvironmentVariable("OUTPUT_DIR") ?? "output";
 List<RealEstateAgent> realEstateAgents = extractionClient.GetBrokerData().GetAwaiter().GetResult();
 
 // create result table  
+Console.WriteLine("Transforming real estate agent data for Amsterdam...");
 List<RealEstateAgent> overAllResults = realEstateAgents.Transform();
 List<RealEstateAgent> purchaseResults = realEstateAgents.TransformByOfferType(OfferType.Purchase);
 List<RealEstateAgent> rentResults = realEstateAgents.TransformByOfferType(OfferType.Rent);
+Console.WriteLine("Done");
 
 // create output file
 overAllResults.CreateOutput(outputDir, "amsterdam_overall");
@@ -29,6 +28,11 @@ realEstateAgents = extractionClient.GetBrokerData("garden").GetAwaiter().GetResu
 
 // create result table  
 realEstateAgents = realEstateAgents.Transform();
-// create output file
-realEstateAgents.CreateOutput(outputDir, "garden_overall");
 
+// create output file for Amsterdam data
+overAllResults.CreateOutput(outputDir, "amsterdam_overall");
+purchaseResults.CreateOutput(outputDir, "amsterdam_purchase_only");
+rentResults.CreateOutput(outputDir, "amsterdam_rent_only");
+
+// create output file for garden data
+realEstateAgents.CreateOutput(outputDir, "garden_overall");
