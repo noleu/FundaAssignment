@@ -4,4 +4,5 @@
     build:
       context: .
       dockerfile: FundaAssignment/Dockerfile
-
+    volumes:
+      - ./output:/app/publish/output
