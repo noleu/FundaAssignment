@@ -10,6 +10,8 @@ public class ExtractionClient
 {
     private readonly String _apiKey;
     private static readonly String BaseUrl = "https://partnerapi.funda.nl/feeds/Aanbod.svc/json";
+    private const int SleepTime = 500; // milliseconds
+    private const int MaxRetries = 3; // maximum number of retries for failed pages
     
     public ExtractionClient()
     {
@@ -109,14 +111,15 @@ public class ExtractionClient
     private async Task<List<RealEstateAgent>> FetchRealEstateDataAsync(String parameter)
     {
         List<RealEstateAgent> realEstateAgents = new List<RealEstateAgent>();
-        using HttpClient client = new HttpClient();
-        client.BaseAddress = new Uri($"{BaseUrl}/{_apiKey}/");
+        // using HttpClient client = new HttpClient();
+        // client.BaseAddress = new Uri($"{BaseUrl}/{_apiKey}/");
+        using var client = CreateHttpClient();
         
         Boolean nextPageAvailable = true;
         int page = 1;
         HttpResponseMessage responseMessage;
+        List<int> failedPages = [];
 
-        
         while (nextPageAvailable)
         {
             if (page % 10 == 0) Console.WriteLine("Fetching page: " + page);
@@ -127,9 +130,10 @@ public class ExtractionClient
                 // TODO: retry logic if the request fails
                 if (!responseMessage.IsSuccessStatusCode)
                 {
-                    Console.WriteLine($"Failed to fetch data: {responseMessage.StatusCode} on page {page}");
-                    page++;
+                    failedPages.Add(page);
                     parameter = parameter.Replace($"&page={page}", $"&page={++page}");
+                    // Sleep for 500 milliseconds to avoid hitting the rate limit of > 100 requests per minute
+                    Thread.Sleep(SleepTime);
                     continue;
                 }
 
@@ -137,8 +141,9 @@ public class ExtractionClient
                 // Check if responseContent is null or Objects is null
                 if (responseContent == null)
                 {
-                    Console.WriteLine("Response content is null. No data received.");
-                    throw new InvalidOperationException("Response content is null. No data received from the API.");
+                    failedPages.Add(page);
+                    // Sleep for 500 milliseconds to avoid hitting the rate limit of > 100 requests per minute
+                    Thread.Sleep(SleepTime); 
                 }
                 realEstateAgents.AddRange(responseContent.Objects);
                 
@@ -147,8 +152,8 @@ public class ExtractionClient
                 {
                     nextPageAvailable = true;
                     parameter = parameter.Replace($"&page={page}", $"&page={++page}");
-                    // Sleep for 600 milliseconds to avoid hitting the rate limit of > 100 requests per minute
-                    Thread.Sleep(500); 
+                    // Sleep for 500 milliseconds to avoid hitting the rate limit of > 100 requests per minute
+                    Thread.Sleep(SleepTime); 
                 }
                 else
                 {
@@ -161,8 +166,69 @@ public class ExtractionClient
                 throw;
             }
         }
-        
+
+        // retry logic for failed pages
+        if (failedPages.Count > 0)
+        {
+            realEstateAgents.AddRange(RetryFetchEstateDataAsync(failedPages, parameter).GetAwaiter().GetResult());
+        }
+
         return realEstateAgents;
+    }
+
+    private async Task<List<RealEstateAgent>> RetryFetchEstateDataAsync(List<Int32> pagesToRetry, String parameter)
+    {
+        using HttpClient client = CreateHttpClient();
+        List<RealEstateAgent> realEstateAgents = new List<RealEstateAgent>();
+        List<int> failedPages = new List<int>();
+        int numberOfFailedPages = pagesToRetry.Count;
+        
+        for (int i = 0; i < MaxRetries; i++)
+        {
+            foreach (int page in pagesToRetry)
+            {
+                try
+                {
+                    Console.WriteLine($"Retrying page {page}...");
+                    parameter = parameter.Replace($"&page=1", $"&page={page}");
+                    HttpResponseMessage responseMessage = await client.GetAsync(parameter);
+                    if (!responseMessage.IsSuccessStatusCode)
+                    {
+                        failedPages.Add(page);
+                        continue;
+                    }
+
+                    RealEstateData? responseContent = await responseMessage.Content.ReadFromJsonAsync<RealEstateData>();
+                    // Check if responseContent is null or Objects is null
+                    if (responseContent == null)
+                    {
+                        failedPages.Add(page);
+                        continue;
+                    }
+
+                    realEstateAgents.AddRange(responseContent.Objects);
+                    // Thread.Sleep(400);
+                    Thread.Sleep(SleepTime);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine($"Error fetching page {page}: {e.Message}");
+                    failedPages.Add(page);
+                }
+            }
+
+            pagesToRetry = failedPages;
+        }
+
+        Console.WriteLine($"Succesfully retrieved {numberOfFailedPages - failedPages.Count}/{numberOfFailedPages} failed pages on retry.");
+        return realEstateAgents;
+    }
+    
+    private HttpClient CreateHttpClient()
+    {
+        HttpClient client = new HttpClient();
+        client.BaseAddress = new Uri($"{BaseUrl}/{_apiKey}/");
+        return client;
     }
 }
     
