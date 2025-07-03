@@ -111,8 +111,6 @@ public class ExtractionClient
     private async Task<List<RealEstateAgent>> FetchRealEstateDataAsync(String parameter)
     {
         List<RealEstateAgent> realEstateAgents = new List<RealEstateAgent>();
-        // using HttpClient client = new HttpClient();
-        // client.BaseAddress = new Uri($"{BaseUrl}/{_apiKey}/");
         using var client = CreateHttpClient();
         
         Boolean nextPageAvailable = true;
