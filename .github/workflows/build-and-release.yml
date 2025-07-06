@@ -39,6 +39,7 @@ jobs:
   package-and-release:
     needs: build-and-test
     runs-on: ubuntu-latest
+    if: github.event_name == 'release'
     
     strategy:
       matrix:
@@ -87,6 +88,7 @@ jobs:
   docker-build:
     needs: build-and-test
     runs-on: ubuntu-latest
+    if: github.event_name == 'release'
     
     steps:
     - uses: actions/checkout@v4
