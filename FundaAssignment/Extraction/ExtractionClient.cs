@@ -70,7 +70,7 @@ public class ExtractionClient
     {
         // TODO: check input for searchTerm
         searchTerm = !string.IsNullOrEmpty(searchTerm) ? $"{searchTerm}/" : "";
-        String parameter = $"?type=koop&zo=/amsterdam/{searchTerm}&page=1&pagesize=25";
+        String parameter = $"?type=koop&zo=/amsterdam/{searchTerm}&page=0&pagesize=25";
         
         List<RealEstateAgent> realEstateAgents = await FetchRealEstateDataAsync(parameter);
         
@@ -91,7 +91,7 @@ public class ExtractionClient
     /// <exception cref="InvalidOperationException">In case a page does not have any content</exception>
     private async Task<List<RealEstateAgent>> GetRentOffersAsync()
     {
-        List<RealEstateAgent> realEstateAgents = await FetchRealEstateDataAsync($"?type=huur&zo=/amsterdam/&page=1&pagesize=25");
+        List<RealEstateAgent> realEstateAgents = await FetchRealEstateDataAsync($"?type=huur&zo=/amsterdam/&page=0&pagesize=25");
         // assign offer type to each real estate agent
         foreach (var realEstateAgent in realEstateAgents)
         {
@@ -114,7 +114,7 @@ public class ExtractionClient
         using var client = CreateHttpClient();
         
         Boolean nextPageAvailable = true;
-        int page = 1;
+        int page = 0;
         HttpResponseMessage responseMessage;
         List<int> failedPages = [];
 
@@ -188,7 +188,7 @@ public class ExtractionClient
                 try
                 {
                     Console.WriteLine($"Retrying page {page}...");
-                    parameter = parameter.Replace($"&page=1", $"&page={page}");
+                    parameter = parameter.Replace($"&page=0", $"&page={page}");
                     HttpResponseMessage responseMessage = await client.GetAsync(parameter);
                     if (!responseMessage.IsSuccessStatusCode)
                     {
